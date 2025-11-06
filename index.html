@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pinklime Jr - Trendyol Mağazası</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+    h1 { font-size: 22px; }
+    p { color: #555; }
+  </style>
+</head>
+<body>
+  <h1>Pinklime Jr Trendyol Mağazası Açılıyor…</h1>
+  <p>Trendyol uygulaması otomatik açılmazsa aşağıdaki bağlantıya dokunabilirsiniz:</p>
+  <p><a href="https://www.trendyol.com/magaza/pinklime-jr-m-1102269">Web'de Aç</a></p>
+
+  <script>
+    var appLink = "trendyol://sellerstore?merchantId=1102269";
+    var webLink = "https://www.trendyol.com/magaza/pinklime-jr-m-1102269";
+
+    var now = Date.now();
+    var fallback = setTimeout(function() { window.location.href = webLink; }, 1200);
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) clearTimeout(fallback);
+    });
+
+    // Uygulamayı açmayı dene
+    window.location.href = appLink;
+  </script>
+</body>
+</html>
