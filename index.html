@@ -19,28 +19,28 @@
 <body>
   <div class="card">
     <h1>Pinklime Jr Trendyol Mağazası</h1>
-    <p>Trendyol uygulamasında açmak için aşağıdaki butona dokunun. Açılmazsa otomatik olarak web mağazaya yönlendirilirsiniz.</p>
+    <p>Uygulamada açmak için aşağıdaki butona dokunun. Açılmazsa otomatik olarak web mağazaya yönlendirilirsiniz.</p>
     <div class="row">
       <a id="openApp" class="btn primary" href="#">Uygulamada Aç</a>
       <a id="openWeb" class="btn secondary" href="https://www.trendyol.com/magaza/pinklime-jr-m-1102269" rel="noreferrer noopener">Web'de Aç</a>
     </div>
-    <p><small>Not: iOS/TikTok bazı durumlarda otomatik app açmayı engeller. Bu nedenle butona dokunuş gerekir.</small></p>
+    <p><small>Not: iPhone/Safari bazı derin linkleri otomatik reddeder. O yüzden manuel dokunuş gerekir.</small></p>
   </div>
 
   <script>
     (function () {
       var merchantId = "1102269";
       var webFallback = "https://www.trendyol.com/magaza/pinklime-jr-m-1102269";
-      var tygl = "https://ty.gl/6m3jta1f7xgzp"; // Universal Link (iOS'ta sorunsuz)
+      var tygl = "https://ty.gl/6m3jta1f7xgzp";
       var schemes = [
         "trendyol://sellerstore?merchantId=" + merchantId,
         "ty://?PageName=MerchantShop&MerchantId=" + merchantId
       ];
       var ua = navigator.userAgent || "";
       var isAndroid = /Android/i.test(ua);
+      var isiOS = /iPhone|iPad|iPod/i.test(ua);
 
       function openWithIframe(url) {
-        // iOS'ta uyarıyı azaltmak için iframe ile dene
         var iframe = document.createElement("iframe");
         iframe.style.display = "none";
         iframe.src = url;
@@ -51,40 +51,25 @@
       }
 
       function openAppSequence() {
-        var started = Date.now();
         var tries = 0;
-
         function next() {
           tries++;
           if (tries === 1) {
-            // 1) trendyol://
             openWithIframe(schemes[0]);
             setTimeout(next, 700);
           } else if (tries === 2) {
-            // 2) ty:// (eski şema)
             openWithIframe(schemes[1]);
             setTimeout(next, 700);
           } else if (tries === 3) {
-            // 3) Universal Link (ty.gl)
             location.href = tygl;
             setTimeout(next, 900);
           } else {
-            // 4) Web fallback
             location.href = webFallback;
           }
         }
-
-        // App'e geçildiyse fallback'i durdur
-        var cancel = setInterval(function(){
-          if (document.visibilityState === "hidden") {
-            clearInterval(cancel);
-          }
-        }, 100);
-
         next();
       }
 
-      // Android için intent:// daha sağlam (TikTok dahil)
       function openAndroid() {
         var intentUrl =
           "intent://sellerstore?merchantId=" + merchantId +
