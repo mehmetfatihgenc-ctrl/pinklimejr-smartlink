@@ -19,69 +19,46 @@
 <body>
   <div class="card">
     <h1>Pinklime Jr Trendyol Mağazası</h1>
-    <p>Uygulamada açmak için aşağıdaki butona dokunun. Açılmazsa otomatik olarak web mağazaya yönlendirilirsiniz.</p>
+    <p>Uygulamada açmak için aşağıdaki butona dokunun. Açılmazsa web mağazayı seçebilirsiniz.</p>
     <div class="row">
+      <!-- iOS'ta direkt TY.GL, Android'de intent:// ile uygulama -->
       <a id="openApp" class="btn primary" href="#">Uygulamada Aç</a>
-      <a id="openWeb" class="btn secondary" href="https://www.trendyol.com/magaza/pinklime-jr-m-1102269" rel="noreferrer noopener">Web'de Aç</a>
+      <!-- Gerçek web açılışı: ara sayfa ile app’i tetiklemeye çalışma -->
+      <a id="openWeb" class="btn secondary" href="#" rel="noreferrer noopener">Web'de Aç</a>
     </div>
-    <p><small>Not: iPhone/Safari bazı derin linkleri otomatik reddeder. O yüzden manuel dokunuş gerekir.</small></p>
+    <p><small>Not: iPhone/Safari’de Universal Link sayesinde “Uygulamada Aç” anında app’i açar.</small></p>
   </div>
 
   <script>
     (function () {
-      var merchantId = "1102269";
-      var webFallback = "https://www.trendyol.com/magaza/pinklime-jr-m-1102269";
-      var tygl = "https://ty.gl/6m3jta1f7xgzp";
-      var schemes = [
-        "trendyol://sellerstore?merchantId=" + merchantId,
-        "ty://?PageName=MerchantShop&MerchantId=" + merchantId
-      ];
-      var ua = navigator.userAgent || "";
-      var isAndroid = /Android/i.test(ua);
-      var isiOS = /iPhone|iPad|iPod/i.test(ua);
+      var MERCHANT = "1102269";
+      var WEB = "https://www.trendyol.com/magaza/pinklime-jr-m-1102269";
+      var TYGL = "https://ty.gl/6m3jta1f7xgzp"; // iOS için en güvenilir yol (Universal Link)
+      var UA = navigator.userAgent || "";
+      var isAndroid = /Android/i.test(UA);
 
-      function openWithIframe(url) {
-        var iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = url;
-        document.body.appendChild(iframe);
-        setTimeout(function(){
-          if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
-        }, 900);
-      }
-
-      function openAppSequence() {
-        var tries = 0;
-        function next() {
-          tries++;
-          if (tries === 1) {
-            openWithIframe(schemes[0]);
-            setTimeout(next, 700);
-          } else if (tries === 2) {
-            openWithIframe(schemes[1]);
-            setTimeout(next, 700);
-          } else if (tries === 3) {
-            location.href = tygl;
-            setTimeout(next, 900);
-          } else {
-            location.href = webFallback;
-          }
-        }
-        next();
-      }
-
-      function openAndroid() {
-        var intentUrl =
-          "intent://sellerstore?merchantId=" + merchantId +
-          "#Intent;scheme=trendyol;package=com.dsmobile.trendyol;" +
-          "S.browser_fallback_url=" + encodeURIComponent(webFallback) + ";end";
-        location.href = intentUrl;
-      }
-
-      document.getElementById("openApp").addEventListener("click", function (e) {
+      // Uygulamada Aç
+      document.getElementById("openApp").addEventListener("click", function(e){
         e.preventDefault();
-        if (isAndroid) openAndroid();
-        else openAppSequence();
+        if (isAndroid) {
+          // Android: intent ile doğrudan uygulama
+          var intentUrl =
+            "intent://sellerstore?merchantId=" + MERCHANT +
+            "#Intent;scheme=trendyol;package=com.dsmobile.trendyol;" +
+            "S.browser_fallback_url=" + encodeURIComponent(WEB) + ";end";
+          location.href = intentUrl;
+        } else {
+          // iOS: Universal Link ile anında uygulama
+          location.href = TYGL;
+        }
+      });
+
+      // Web'de Aç (app'i zorlamadan düz web)
+      document.getElementById("openWeb").addEventListener("click", function(e){
+        e.preventDefault();
+        // App’i tetikleme ihtimalini azaltmak için kendi alanımızdan yönlendirme
+        // (bazı cihazlarda yine “Uygulamada aç” banner’ı çıkabilir; bu normal)
+        window.location.href = WEB;
       });
     })();
   </script>
