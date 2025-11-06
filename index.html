@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pinklime Jr - Trendyol Mağazası</title>
   <style>
-    body{font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-         margin:0;padding:32px;background:#f6f6f6;color:#111}
-    .card{max-width:720px;margin:0 auto;background:#fff;border-radius:14px;
-          box-shadow:0 6px 24px rgba(0,0,0,.06);padding:28px}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;margin:0;padding:32px;background:#f6f6f6;color:#111}
+    .card{max-width:720px;margin:0 auto;background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.06);padding:28px}
     h1{font-size:22px;margin:0 0 8px}
     p{color:#555;line-height:1.55;margin:6px 0 18px}
     .btn{display:inline-block;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:600}
@@ -26,49 +24,79 @@
       <a id="openApp" class="btn primary" href="#">Uygulamada Aç</a>
       <a id="openWeb" class="btn secondary" href="https://www.trendyol.com/magaza/pinklime-jr-m-1102269" rel="noreferrer noopener">Web'de Aç</a>
     </div>
-    <p><small>Not: TikTok/Safari bazı durumlarda sayfa açılır açılmaz uygulamayı engeller. Bu nedenle “Uygulamada Aç” butonuna dokunuş gerekir.</small></p>
+    <p><small>Not: iOS/TikTok bazı durumlarda otomatik app açmayı engeller. Bu nedenle butona dokunuş gerekir.</small></p>
   </div>
 
   <script>
     (function () {
       var merchantId = "1102269";
-      var deepLink = "trendyol://sellerstore?merchantId=" + merchantId;
       var webFallback = "https://www.trendyol.com/magaza/pinklime-jr-m-1102269";
-
+      var tygl = "https://ty.gl/6m3jta1f7xgzp"; // Universal Link (iOS'ta sorunsuz)
+      var schemes = [
+        "trendyol://sellerstore?merchantId=" + merchantId,
+        "ty://?PageName=MerchantShop&MerchantId=" + merchantId
+      ];
       var ua = navigator.userAgent || "";
       var isAndroid = /Android/i.test(ua);
-      var isiOS = /iPhone|iPad|iPod/i.test(ua);
-      var isTikTok = /TikTok/i.test(ua);
 
-      function openWithFallback(urlToOpen) {
+      function openWithIframe(url) {
+        // iOS'ta uyarıyı azaltmak için iframe ile dene
+        var iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        setTimeout(function(){
+          if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        }, 900);
+      }
+
+      function openAppSequence() {
         var started = Date.now();
-        var t = setTimeout(function () {
-          // App açılmadıysa web'e düş
-          if (Date.now() - started > 300) window.location.href = webFallback;
-        }, 1200);
+        var tries = 0;
 
-        // app'e geçildiğinde sayfa görünmez olur -> fallback iptal
-        document.addEventListener("visibilitychange", function () {
-          if (document.visibilityState === "hidden") clearTimeout(t);
-        });
-
-        // Android için intent:// daha başarılı
-        if (isAndroid) {
-          var intentUrl =
-            "intent://sellerstore?merchantId=" + merchantId +
-            "#Intent;scheme=trendyol;package=com.dsmobile.trendyol;" +
-            "S.browser_fallback_url=" + encodeURIComponent(webFallback) + ";end";
-          window.location.href = intentUrl;
-          return;
+        function next() {
+          tries++;
+          if (tries === 1) {
+            // 1) trendyol://
+            openWithIframe(schemes[0]);
+            setTimeout(next, 700);
+          } else if (tries === 2) {
+            // 2) ty:// (eski şema)
+            openWithIframe(schemes[1]);
+            setTimeout(next, 700);
+          } else if (tries === 3) {
+            // 3) Universal Link (ty.gl)
+            location.href = tygl;
+            setTimeout(next, 900);
+          } else {
+            // 4) Web fallback
+            location.href = webFallback;
+          }
         }
 
-        // iOS: kullanıcı dokunuşuyla custom scheme dene
-        try { window.location.href = urlToOpen; } catch (e) {}
+        // App'e geçildiyse fallback'i durdur
+        var cancel = setInterval(function(){
+          if (document.visibilityState === "hidden") {
+            clearInterval(cancel);
+          }
+        }, 100);
+
+        next();
+      }
+
+      // Android için intent:// daha sağlam (TikTok dahil)
+      function openAndroid() {
+        var intentUrl =
+          "intent://sellerstore?merchantId=" + merchantId +
+          "#Intent;scheme=trendyol;package=com.dsmobile.trendyol;" +
+          "S.browser_fallback_url=" + encodeURIComponent(webFallback) + ";end";
+        location.href = intentUrl;
       }
 
       document.getElementById("openApp").addEventListener("click", function (e) {
         e.preventDefault();
-        openWithFallback(deepLink);
+        if (isAndroid) openAndroid();
+        else openAppSequence();
       });
     })();
   </script>
