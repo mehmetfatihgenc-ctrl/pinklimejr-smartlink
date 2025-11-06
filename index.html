@@ -3,58 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pinklime Jr - Trendyol (Otomatik)</title>
-  <meta name="format-detection" content="telephone=no" />
+  <title>Pinklime Jr - Trendyol Mağazası</title>
   <style>
-    html,body{height:100%}
-    body{margin:0;display:flex;align-items:center;justify-content:center;
-         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-         background:#f6f6f6;color:#111}
-    .box{background:#fff;max-width:680px;width:92%;padding:28px;border-radius:14px;
-         box-shadow:0 6px 24px rgba(0,0,0,.06);text-align:center}
-    h1{font-size:20px;margin:0 0 6px}
-    p{margin:0;color:#666}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;margin:0;padding:32px;background:#f6f6f6;color:#111}
+    .card{max-width:720px;margin:0 auto;background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.06);padding:28px;text-align:center}
+    h1{font-size:22px;margin:0 0 12px}
+    p{color:#555;line-height:1.55;margin:6px 0 18px}
+    .btn{display:inline-block;padding:14px 18px;border-radius:12px;text-decoration:none;font-weight:700;background:#111;color:#fff}
+    small{display:block;color:#888;margin-top:12px}
   </style>
 </head>
 <body>
-  <div class="box">
+  <div class="card">
     <h1>Pinklime Jr Trendyol Mağazası</h1>
-    <p>Uygulama açılıyor… Açılmazsa otomatik olarak web mağazaya yönlendirilirsiniz.</p>
+    <p>Uygulamada açmak için aşağıdaki butona dokunun.</p>
+    <a id="openApp" class="btn" href="#">Uygulamada Aç</a>
+    <small>iPhone’da Universal Link; Android’de intent ile açılır. Açılamazsa otomatik web mağazaya yönlendirilir.</small>
   </div>
 
   <script>
     (function () {
       var MERCHANT = "1102269";
       var WEB = "https://www.trendyol.com/magaza/pinklime-jr-m-1102269";
-      var TYGL = "https://ty.gl/6m3jta1f7xgzp"; // iOS için Universal Link
+      var TYGL = "https://ty.gl/6m3jta1f7xgzp"; // iOS için en güvenilir yol
       var UA = navigator.userAgent || "";
       var isAndroid = /Android/i.test(UA);
 
-      var timer;
-      function fallbackToWeb(ms){
-        clearTimeout(timer);
-        timer = setTimeout(function(){
-          if (document.visibilityState !== "hidden") location.replace(WEB);
-        }, ms);
-      }
-
-      document.addEventListener("visibilitychange", function(){
-        if (document.visibilityState === "hidden") clearTimeout(timer); // app'e geçtiyse
-      });
-
-      if (isAndroid) {
-        // Android: intent → yoksa web
+      function openAndroid() {
         var intentUrl =
           "intent://sellerstore?merchantId=" + MERCHANT +
           "#Intent;scheme=trendyol;package=com.dsmobile.trendyol;" +
           "S.browser_fallback_url=" + encodeURIComponent(WEB) + ";end";
-        fallbackToWeb(1200);
+        // Fallback (uygulama yoksa web)
+        var t = setTimeout(function(){ location.href = WEB; }, 1200);
+        document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="hidden") clearTimeout(t); });
         location.href = intentUrl;
-      } else {
-        // iOS: en stabil yol Universal Link (ty.gl)
-        fallbackToWeb(1200);
+      }
+
+      function openIOS() {
+        // iOS: Universal Link
+        var t = setTimeout(function(){ location.href = WEB; }, 1200);
+        document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="hidden") clearTimeout(t); });
         location.href = TYGL;
       }
+
+      document.getElementById("openApp").addEventListener("click", function(e){
+        e.preventDefault();
+        if (isAndroid) openAndroid(); else openIOS();
+      });
     })();
   </script>
 </body>
