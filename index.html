@@ -3,63 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pinklime Jr - Trendyol Mağazası</title>
+  <title>Pinklime Jr - Trendyol (Otomatik)</title>
+  <meta name="format-detection" content="telephone=no" />
   <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;margin:0;padding:32px;background:#f6f6f6;color:#111}
-    .card{max-width:720px;margin:0 auto;background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.06);padding:28px}
-    h1{font-size:22px;margin:0 0 8px}
-    p{color:#555;line-height:1.55;margin:6px 0 18px}
-    .btn{display:inline-block;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:600}
-    .primary{background:#111;color:#fff}
-    .secondary{background:#f1f1f1;color:#111}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    small{color:#888}
+    html,body{height:100%}
+    body{margin:0;display:flex;align-items:center;justify-content:center;
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         background:#f6f6f6;color:#111}
+    .box{background:#fff;max-width:680px;width:92%;padding:28px;border-radius:14px;
+         box-shadow:0 6px 24px rgba(0,0,0,.06);text-align:center}
+    h1{font-size:20px;margin:0 0 6px}
+    p{margin:0;color:#666}
   </style>
 </head>
 <body>
-  <div class="card">
+  <div class="box">
     <h1>Pinklime Jr Trendyol Mağazası</h1>
-    <p>Uygulamada açmak için aşağıdaki butona dokunun. Açılmazsa web mağazayı seçebilirsiniz.</p>
-    <div class="row">
-      <!-- iOS'ta direkt TY.GL, Android'de intent:// ile uygulama -->
-      <a id="openApp" class="btn primary" href="#">Uygulamada Aç</a>
-      <!-- Gerçek web açılışı: ara sayfa ile app’i tetiklemeye çalışma -->
-      <a id="openWeb" class="btn secondary" href="#" rel="noreferrer noopener">Web'de Aç</a>
-    </div>
-    <p><small>Not: iPhone/Safari’de Universal Link sayesinde “Uygulamada Aç” anında app’i açar.</small></p>
+    <p>Uygulama açılıyor… Açılmazsa otomatik olarak web mağazaya yönlendirilirsiniz.</p>
   </div>
 
   <script>
     (function () {
       var MERCHANT = "1102269";
       var WEB = "https://www.trendyol.com/magaza/pinklime-jr-m-1102269";
-      var TYGL = "https://ty.gl/6m3jta1f7xgzp"; // iOS için en güvenilir yol (Universal Link)
+      var TYGL = "https://ty.gl/6m3jta1f7xgzp"; // iOS için Universal Link
       var UA = navigator.userAgent || "";
       var isAndroid = /Android/i.test(UA);
 
-      // Uygulamada Aç
-      document.getElementById("openApp").addEventListener("click", function(e){
-        e.preventDefault();
-        if (isAndroid) {
-          // Android: intent ile doğrudan uygulama
-          var intentUrl =
-            "intent://sellerstore?merchantId=" + MERCHANT +
-            "#Intent;scheme=trendyol;package=com.dsmobile.trendyol;" +
-            "S.browser_fallback_url=" + encodeURIComponent(WEB) + ";end";
-          location.href = intentUrl;
-        } else {
-          // iOS: Universal Link ile anında uygulama
-          location.href = TYGL;
-        }
+      var timer;
+      function fallbackToWeb(ms){
+        clearTimeout(timer);
+        timer = setTimeout(function(){
+          if (document.visibilityState !== "hidden") location.replace(WEB);
+        }, ms);
+      }
+
+      document.addEventListener("visibilitychange", function(){
+        if (document.visibilityState === "hidden") clearTimeout(timer); // app'e geçtiyse
       });
 
-      // Web'de Aç (app'i zorlamadan düz web)
-      document.getElementById("openWeb").addEventListener("click", function(e){
-        e.preventDefault();
-        // App’i tetikleme ihtimalini azaltmak için kendi alanımızdan yönlendirme
-        // (bazı cihazlarda yine “Uygulamada aç” banner’ı çıkabilir; bu normal)
-        window.location.href = WEB;
-      });
+      if (isAndroid) {
+        // Android: intent → yoksa web
+        var intentUrl =
+          "intent://sellerstore?merchantId=" + MERCHANT +
+          "#Intent;scheme=trendyol;package=com.dsmobile.trendyol;" +
+          "S.browser_fallback_url=" + encodeURIComponent(WEB) + ";end";
+        fallbackToWeb(1200);
+        location.href = intentUrl;
+      } else {
+        // iOS: en stabil yol Universal Link (ty.gl)
+        fallbackToWeb(1200);
+        location.href = TYGL;
+      }
     })();
   </script>
 </body>
